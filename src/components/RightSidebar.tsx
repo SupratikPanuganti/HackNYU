@@ -61,7 +61,7 @@ export function RightSidebar({
   }
 
   return (
-    <div className="w-[500px] h-full border-l border-border bg-bg-secondary flex flex-col">
+    <div className="w-full h-full border-l border-border bg-bg-secondary flex flex-col">
       {/* Collapse Button */}
       <div className="border-b border-border p-3 flex items-center justify-between">
         <h3 className="text-sm font-bold text-text-primary">

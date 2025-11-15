@@ -13,6 +13,7 @@ import { mockNotifications } from '@/data/mockNotifications';
 import { Task } from '@/types/wardops';
 import { Notification } from '@/types/notifications';
 import { toast } from 'sonner';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('ask');
@@ -61,40 +62,50 @@ const Index = () => {
         onTabChange={setActiveTab} 
       />
 
-      {/* Center Column */}
-      <div className="flex-1 h-full flex flex-col bg-bg-secondary overflow-y-auto">
-        {activeTab === 'ask' ? (
-          <ChatInterface initialMessages={mockChatHistory} />
-        ) : (
-          <div className="p-8 flex-1">
-            <div className="glass-panel rounded-lg p-12 text-center">
-              <h2 className="text-2xl font-bold text-text-primary mb-2">
-                {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
-              </h2>
-              <p className="text-text-secondary">
-                Coming soon - this feature is under development
-              </p>
-            </div>
+      {/* Resizable Main Content Area */}
+      <ResizablePanelGroup direction="horizontal" className="flex-1">
+        {/* Center Column */}
+        <ResizablePanel defaultSize={70} minSize={40}>
+          <div className="h-full flex flex-col bg-bg-secondary overflow-y-auto">
+            {activeTab === 'ask' ? (
+              <ChatInterface initialMessages={mockChatHistory} />
+            ) : (
+              <div className="p-8 flex-1">
+                <div className="glass-panel rounded-lg p-12 text-center">
+                  <h2 className="text-2xl font-bold text-text-primary mb-2">
+                    {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+                  </h2>
+                  <p className="text-text-secondary">
+                    Coming soon - this feature is under development
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </ResizablePanel>
 
-      {/* Right Sidebar - Collapsible */}
-      <RightSidebar
-        activeTab={activeTab}
-        assets={mockAssets}
-        roomReadiness={mockRoomReadiness}
-        tasks={tasks}
-        notifications={notifications}
-        selectedRoomId={selectedRoomId}
-        onRoomSelect={setSelectedRoomId}
-        onAssetSelect={(id) => console.log('Asset selected:', id)}
-        onTaskComplete={handleTaskComplete}
-        onTaskDismiss={handleTaskDismiss}
-        onNotificationRead={handleNotificationRead}
-        onNotificationDismiss={handleNotificationDismiss}
-        onNotificationAction={handleNotificationAction}
-      />
+        {/* Draggable Resize Handle */}
+        <ResizableHandle className="w-1 bg-border hover:bg-accent-cyan transition-smooth cursor-col-resize" />
+
+        {/* Right Sidebar - Collapsible & Resizable */}
+        <ResizablePanel defaultSize={30} minSize={15} maxSize={50}>
+          <RightSidebar
+            activeTab={activeTab}
+            assets={mockAssets}
+            roomReadiness={mockRoomReadiness}
+            tasks={tasks}
+            notifications={notifications}
+            selectedRoomId={selectedRoomId}
+            onRoomSelect={setSelectedRoomId}
+            onAssetSelect={(id) => console.log('Asset selected:', id)}
+            onTaskComplete={handleTaskComplete}
+            onTaskDismiss={handleTaskDismiss}
+            onNotificationRead={handleNotificationRead}
+            onNotificationDismiss={handleNotificationDismiss}
+            onNotificationAction={handleNotificationAction}
+          />
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 };
