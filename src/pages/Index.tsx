@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import { Sidebar } from '@/components/Sidebar';
 import { ChatInterface } from '@/components/ChatInterface';
-import { WardMap } from '@/components/WardMap';
-import { RoomDetails } from '@/components/RoomDetails';
-import { TaskQueue } from '@/components/TaskQueue';
-import { Header } from '@/components/Header';
+import { RightSidebar } from '@/components/RightSidebar';
 import {
   mockUser,
   mockAssets,
@@ -27,6 +24,7 @@ const Index = () => {
     setTasks(tasks.map(t => 
       t.taskId === taskId ? { ...t, status: 'done' as const } : t
     ));
+    toast.success('Task marked as complete');
   };
 
   const handleTaskDismiss = (taskId: string) => {
@@ -54,10 +52,6 @@ const Index = () => {
     handleNotificationRead(notification.id);
   };
 
-  const selectedRoomReadiness = mockRoomReadiness.find(
-    r => r.roomId === selectedRoomId
-  ) || null;
-
   return (
     <div className="flex h-screen w-full overflow-hidden bg-bg-primary">
       {/* Left Sidebar */}
@@ -68,62 +62,39 @@ const Index = () => {
       />
 
       {/* Center Column */}
-      <div className="flex-1 h-full flex flex-col bg-bg-secondary">
-        {/* Header with Notifications */}
-        <Header
-          notifications={notifications}
-          onNotificationRead={handleNotificationRead}
-          onNotificationDismiss={handleNotificationDismiss}
-          onNotificationAction={handleNotificationAction}
-        />
-
-        <div className="flex-1 overflow-y-auto">
-          {activeTab === 'ask' ? (
-            <div className="h-full flex flex-col">
-              <div className="flex-1 min-h-0">
-                <ChatInterface initialMessages={mockChatHistory} />
-              </div>
-              <div className="border-t border-border p-6">
-                <TaskQueue 
-                  tasks={tasks}
-                  onTaskComplete={handleTaskComplete}
-                  onTaskDismiss={handleTaskDismiss}
-                />
-              </div>
+      <div className="flex-1 h-full flex flex-col bg-bg-secondary overflow-y-auto">
+        {activeTab === 'ask' ? (
+          <ChatInterface initialMessages={mockChatHistory} />
+        ) : (
+          <div className="p-8 flex-1">
+            <div className="glass-panel rounded-lg p-12 text-center">
+              <h2 className="text-2xl font-bold text-text-primary mb-2">
+                {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+              </h2>
+              <p className="text-text-secondary">
+                Coming soon - this feature is under development
+              </p>
             </div>
-          ) : (
-            <div className="p-8">
-              <div className="glass-panel rounded-lg p-12 text-center">
-                <h2 className="text-2xl font-bold text-text-primary mb-2">
-                  {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
-                </h2>
-                <p className="text-text-secondary">
-                  Coming soon - this feature is under development
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* Right Column - Ward Map */}
-      <div className="w-[600px] h-full border-l border-border bg-bg-secondary flex flex-col">
-        <div className="flex-1 min-h-0">
-          <WardMap
-            assets={mockAssets}
-            roomReadiness={mockRoomReadiness}
-            onRoomSelect={setSelectedRoomId}
-            onAssetSelect={(id) => console.log('Asset selected:', id)}
-            selectedRoomId={selectedRoomId}
-          />
-        </div>
-        <div className="border-t border-border p-6">
-          <RoomDetails 
-            roomReadiness={selectedRoomReadiness}
-            tasks={tasks}
-          />
-        </div>
-      </div>
+      {/* Right Sidebar - Collapsible */}
+      <RightSidebar
+        activeTab={activeTab}
+        assets={mockAssets}
+        roomReadiness={mockRoomReadiness}
+        tasks={tasks}
+        notifications={notifications}
+        selectedRoomId={selectedRoomId}
+        onRoomSelect={setSelectedRoomId}
+        onAssetSelect={(id) => console.log('Asset selected:', id)}
+        onTaskComplete={handleTaskComplete}
+        onTaskDismiss={handleTaskDismiss}
+        onNotificationRead={handleNotificationRead}
+        onNotificationDismiss={handleNotificationDismiss}
+        onNotificationAction={handleNotificationAction}
+      />
     </div>
   );
 };
