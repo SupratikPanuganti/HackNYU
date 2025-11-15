@@ -6,9 +6,29 @@
       "Bash(del \"C:\\hack_nyu\\HackNYU\\public\\favicon.ico\")",
       "Bash(npm install:*)",
       "Bash(npm uninstall:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(if [ -f .env ])",
+      "Bash(then echo \"✅ .env file exists\")",
+      "Bash(cat:*)",
+      "Bash(else echo \"❌ .env file not found\")",
+      "Bash(fi)"
     ],
     "deny": [],
     "ask": []
   }
 }
+
+{
+  "mcpServers": {
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=zsfsiyjupzrnybeooqwy",
+      "headers": {
+        "Authorization": "Bearer sbp_80f25181b08fa1a79a4a8870154e1a7c7a01c523"
+      }
+    }
+  }
+}
+
