@@ -39,22 +39,23 @@ export function RightSidebar({
   onNotificationDismiss,
   onNotificationAction,
 }: RightSidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isManuallyCollapsed, setIsManuallyCollapsed] = useState(false);
 
   const selectedRoomReadiness = roomReadiness.find(
     r => r.roomId === selectedRoomId
   ) || null;
 
-  if (isCollapsed) {
+  // Show collapsed state when manually collapsed
+  if (isManuallyCollapsed) {
     return (
-      <div className="w-12 h-full border-l border-border bg-bg-secondary flex flex-col items-center py-4">
+      <div className="w-full h-full border-l border-border bg-bg-secondary flex items-center justify-center p-4">
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setIsCollapsed(false)}
-          className="text-text-tertiary hover:text-text-primary"
+          onClick={() => setIsManuallyCollapsed(false)}
+          className="text-text-tertiary hover:text-text-primary rotate-180"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronRight className="h-5 w-5" />
         </Button>
       </div>
     );
@@ -70,8 +71,9 @@ export function RightSidebar({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setIsCollapsed(true)}
+          onClick={() => setIsManuallyCollapsed(true)}
           className="text-text-tertiary hover:text-text-primary"
+          title="Collapse sidebar"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
