@@ -64,21 +64,21 @@ export function NotificationPanel({
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full p-4 flex items-center justify-between hover:bg-bg-tertiary/30 transition-smooth"
+        className="w-full p-4 flex items-center justify-between hover:bg-bg-tertiary/30 transition-smooth min-w-0"
       >
-        <div className="flex items-center gap-3">
-          <Bell className="h-4 w-4 text-accent-cyan" />
-          <div className="text-left">
-            <h3 className="text-sm font-bold text-text-primary">Notifications</h3>
-            <p className="text-xs text-text-tertiary">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <Bell className="h-4 w-4 text-accent-cyan flex-shrink-0" />
+          <div className="text-left min-w-0 flex-1">
+            <h3 className="text-sm font-bold text-text-primary truncate">Notifications</h3>
+            <p className="text-xs text-text-tertiary whitespace-nowrap">
               {unreadCount} unread
             </p>
           </div>
         </div>
         {isExpanded ? (
-          <ChevronUp className="h-4 w-4 text-text-tertiary" />
+          <ChevronUp className="h-4 w-4 text-text-tertiary flex-shrink-0" />
         ) : (
-          <ChevronDown className="h-4 w-4 text-text-tertiary" />
+          <ChevronDown className="h-4 w-4 text-text-tertiary flex-shrink-0" />
         )}
       </button>
 
@@ -113,7 +113,7 @@ export function NotificationPanel({
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-1">
-                          <h4 className={`text-xs font-bold ${
+                          <h4 className={`text-xs font-bold break-words ${
                             notification.status === 'unread' 
                               ? 'text-text-primary' 
                               : 'text-text-secondary'
@@ -125,18 +125,18 @@ export function NotificationPanel({
                               e.stopPropagation();
                               onNotificationDismiss(notification.id);
                             }}
-                            className="text-text-tertiary hover:text-accent-red transition-smooth"
+                            className="text-text-tertiary hover:text-accent-red transition-smooth flex-shrink-0"
                           >
                             <X className="h-3 w-3" />
                           </button>
                         </div>
                         
-                        <p className="text-xs text-text-secondary mb-2">
+                        <p className="text-xs text-text-secondary mb-2 break-words">
                           {notification.message}
                         </p>
 
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-text-tertiary">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <span className="text-[10px] text-text-tertiary whitespace-nowrap">
                             {formatTimestamp(notification.timestamp)}
                           </span>
                           
@@ -147,7 +147,7 @@ export function NotificationPanel({
                                 e.stopPropagation();
                                 onNotificationAction?.(notification.actionId!, notification);
                               }}
-                              className={`h-5 px-2 text-[10px] ${config.color} bg-transparent hover:${config.bgColor} border ${config.borderColor}`}
+                              className={`h-5 px-2 text-[10px] ${config.color} bg-transparent hover:${config.bgColor} border ${config.borderColor} whitespace-nowrap`}
                             >
                               {notification.actionLabel}
                             </Button>

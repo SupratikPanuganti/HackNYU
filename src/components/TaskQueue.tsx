@@ -14,9 +14,9 @@ export function TaskQueue({ tasks, onTaskComplete, onTaskDismiss }: TaskQueuePro
 
   return (
     <div className="glass-panel rounded-lg p-6">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
         <h3 className="text-lg font-bold text-text-primary">Task Queue</h3>
-        <span className="px-2 py-1 bg-accent-cyan/20 text-accent-cyan text-xs font-medium rounded">
+        <span className="px-2 py-1 bg-accent-cyan/20 text-accent-cyan text-xs font-medium rounded whitespace-nowrap">
           {activeTasks.length} Active
         </span>
       </div>
@@ -24,31 +24,33 @@ export function TaskQueue({ tasks, onTaskComplete, onTaskDismiss }: TaskQueuePro
       <div className="space-y-3">
         {activeTasks.map(task => (
           <div key={task.taskId} className="bg-bg-tertiary rounded-lg p-4 border border-border">
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`px-2 py-0.5 text-xs font-bold rounded ${
+            <div className="flex items-start justify-between mb-2 gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <span className={`px-2 py-0.5 text-xs font-bold rounded whitespace-nowrap ${
                     task.priority === 'high' ? 'bg-accent-red/20 text-accent-red' :
                     task.priority === 'medium' ? 'bg-accent-yellow/20 text-accent-yellow' :
                     'bg-accent-blue/20 text-accent-blue'
                   }`}>
                     {task.priority.toUpperCase()}
                   </span>
-                  <Clock className="h-3 w-3 text-text-tertiary" />
-                  <span className="text-xs text-text-tertiary">
-                    {Math.floor((Date.now() - task.createdAt.getTime()) / 60000)}m ago
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3 text-text-tertiary flex-shrink-0" />
+                    <span className="text-xs text-text-tertiary whitespace-nowrap">
+                      {Math.floor((Date.now() - task.createdAt.getTime()) / 60000)}m ago
+                    </span>
+                  </div>
                 </div>
-                <h4 className="text-sm font-bold text-text-primary mb-1">{task.title}</h4>
-                <p className="text-xs text-text-secondary">{task.reason}</p>
+                <h4 className="text-sm font-bold text-text-primary mb-1 break-words">{task.title}</h4>
+                <p className="text-xs text-text-secondary break-words">{task.reason}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 mt-3">
+            <div className="flex items-center gap-2 mt-3 flex-wrap">
               <Button
                 size="sm"
                 onClick={() => onTaskComplete(task.taskId)}
-                className="flex-1 bg-accent-green/20 text-accent-green hover:bg-accent-green/30"
+                className="flex-1 min-w-[100px] bg-accent-green/20 text-accent-green hover:bg-accent-green/30"
               >
                 <CheckCircle2 className="h-3 w-3 mr-1" />
                 Done

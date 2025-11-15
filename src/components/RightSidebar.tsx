@@ -78,7 +78,7 @@ export function RightSidebar({
       </div>
 
       {/* Content based on active tab */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {activeTab === 'ask' && (
           <div className="flex flex-col h-full">
             {/* Ward Map */}
