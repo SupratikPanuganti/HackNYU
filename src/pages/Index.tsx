@@ -65,7 +65,7 @@ const Index = () => {
       {/* Resizable Main Content Area */}
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         {/* Center Column */}
-        <ResizablePanel defaultSize={70} minSize={40}>
+        <ResizablePanel defaultSize={75} minSize={50}>
           <div className="h-full flex flex-col bg-bg-secondary overflow-y-auto">
             {activeTab === 'ask' ? (
               <ChatInterface initialMessages={mockChatHistory} />
@@ -88,7 +88,7 @@ const Index = () => {
         <ResizableHandle className="w-1 bg-border hover:bg-accent-cyan transition-smooth cursor-col-resize" />
 
         {/* Right Sidebar - Collapsible & Resizable */}
-        <ResizablePanel defaultSize={30} minSize={0} maxSize={50} collapsible={true}>
+        <ResizablePanel defaultSize={25} minSize={0} maxSize={40} collapsible={true}>
           <RightSidebar
             activeTab={activeTab}
             assets={mockAssets}
