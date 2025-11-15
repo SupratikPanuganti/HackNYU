@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Bell, X, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { Notification, NotificationStatus } from '@/types/notifications';
 import { Button } from '@/components/ui/button';

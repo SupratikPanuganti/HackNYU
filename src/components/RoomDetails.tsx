@@ -1,3 +1,4 @@
+import React from 'react';
 import { RoomReadiness, Task } from '@/types/wardops';
 import { CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 

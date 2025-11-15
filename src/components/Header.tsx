@@ -1,3 +1,4 @@
+import React from 'react';
 import { NotificationCenter } from './NotificationCenter';
 import { Notification } from '@/types/notifications';
 
