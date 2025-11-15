@@ -88,7 +88,7 @@ const Index = () => {
         <ResizableHandle className="w-1 bg-border hover:bg-accent-cyan transition-smooth cursor-col-resize" />
 
         {/* Right Sidebar - Collapsible & Resizable */}
-        <ResizablePanel defaultSize={30} minSize={10} maxSize={50}>
+        <ResizablePanel defaultSize={30} minSize={0} maxSize={50} collapsible={true}>
           <RightSidebar
             activeTab={activeTab}
             assets={mockAssets}
