@@ -53,7 +53,7 @@ export function ChatInterface({ initialMessages }: ChatInterfaceProps) {
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className="border-b border-border p-6">
-        <h2 className="text-2xl font-bold text-text-primary">Ask WardOps</h2>
+        <h2 className="text-2xl font-bold text-text-primary">Ask Vitalis</h2>
         <p className="text-sm text-text-secondary mt-1">AI Ops Assistant for Ward 101</p>
       </div>
 
@@ -105,7 +105,7 @@ export function ChatInterface({ initialMessages }: ChatInterfaceProps) {
               {message.role === 'assistant' && (
                 <div className="flex items-center gap-2 mb-2 pb-2 border-b border-accent-cyan/20">
                   <Sparkles className="h-4 w-4 text-accent-cyan" />
-                  <span className="text-sm font-medium text-text-primary">WardOps</span>
+                  <span className="text-sm font-medium text-text-primary">Vitalis</span>
                   <span className="px-1.5 py-0.5 text-[10px] font-bold bg-accent-cyan/20 text-accent-cyan rounded">AI</span>
                 </div>
               )}

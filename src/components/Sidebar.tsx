@@ -16,7 +16,7 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { id: 'ask', label: 'Ask WardOps', icon: MessageSquare },
+  { id: 'ask', label: 'Ask Vitalis', icon: MessageSquare },
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'inventory', label: 'Inventory', icon: Package },
   { id: 'locations', label: 'Locations', icon: MapPin },
@@ -34,7 +34,7 @@ export function Sidebar({ user, activeTab, onTabChange }: SidebarProps) {
             <div className="h-6 w-6 border-2 border-bg-primary rounded-sm" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-text-primary">WardOps</h1>
+            <h1 className="text-lg font-bold text-text-primary">Vitalis</h1>
             <p className="text-xs text-text-tertiary">AI Ops Command Center</p>
           </div>
         </div>
