@@ -35,57 +35,57 @@ export function RoomDetails({ roomReadiness, tasks }: RoomDetailsProps) {
           </div>
         </div>
 
-        <div className="space-y-3">
-          {/* Required Assets */}
-          <div>
-            <p className="text-xs text-text-tertiary uppercase font-medium mb-2">Required Assets</p>
-            <div className="flex flex-wrap gap-2">
-              {roomReadiness.requiredAssets.map(asset => (
-                <span key={asset} className="px-2 py-1 bg-bg-tertiary rounded text-xs text-text-secondary">
-                  {asset.replace('_', ' ')}
-                </span>
-              ))}
-            </div>
-          </div>
+            <div className="space-y-3">
+              {/* Required Assets */}
+              <div>
+                <p className="text-xs text-text-tertiary uppercase font-medium mb-2">Required Assets</p>
+                <div className="flex flex-wrap gap-2">
+                  {roomReadiness.requiredAssets.map(asset => (
+                    <span key={asset} className="px-2 py-1 bg-bg-tertiary rounded text-xs text-text-secondary break-words">
+                      {asset.replace('_', ' ')}
+                    </span>
+                  ))}
+                </div>
+              </div>
 
-          {/* Missing Assets */}
-          {roomReadiness.missing.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <XCircle className="h-4 w-4 text-accent-red" />
-                <p className="text-xs text-text-tertiary uppercase font-medium">Missing</p>
-              </div>
-              <div className="space-y-1">
-                {roomReadiness.missing.map((item, idx) => (
-                  <p key={idx} className="text-sm text-accent-red">{item}</p>
-                ))}
-              </div>
-            </div>
-          )}
+              {/* Missing Assets */}
+              {roomReadiness.missing.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <XCircle className="h-4 w-4 text-accent-red flex-shrink-0" />
+                    <p className="text-xs text-text-tertiary uppercase font-medium">Missing</p>
+                  </div>
+                  <div className="space-y-1">
+                    {roomReadiness.missing.map((item, idx) => (
+                      <p key={idx} className="text-sm text-accent-red break-words">{item}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {/* Extra Assets */}
-          {roomReadiness.extra.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="h-4 w-4 text-accent-yellow" />
-                <p className="text-xs text-text-tertiary uppercase font-medium">Extra / Review</p>
-              </div>
-              <div className="space-y-1">
-                {roomReadiness.extra.map((item, idx) => (
-                  <p key={idx} className="text-sm text-accent-yellow">{item}</p>
-                ))}
-              </div>
-            </div>
-          )}
+              {/* Extra Assets */}
+              {roomReadiness.extra.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertCircle className="h-4 w-4 text-accent-yellow flex-shrink-0" />
+                    <p className="text-xs text-text-tertiary uppercase font-medium">Extra / Review</p>
+                  </div>
+                  <div className="space-y-1">
+                    {roomReadiness.extra.map((item, idx) => (
+                      <p key={idx} className="text-sm text-accent-yellow break-words">{item}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {/* All Clear */}
-          {roomReadiness.hasAllRequired && roomReadiness.missing.length === 0 && (
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-accent-green" />
-              <p className="text-sm text-accent-green">All required assets present</p>
+              {/* All Clear */}
+              {roomReadiness.hasAllRequired && roomReadiness.missing.length === 0 && (
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-accent-green flex-shrink-0" />
+                  <p className="text-sm text-accent-green break-words">All required assets present</p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
       </div>
 
       {/* Room Tasks */}
@@ -95,9 +95,9 @@ export function RoomDetails({ roomReadiness, tasks }: RoomDetailsProps) {
           <div className="space-y-2">
             {roomTasks.map(task => (
               <div key={task.taskId} className="p-3 bg-bg-tertiary rounded">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-text-primary">{task.title}</span>
-                  <span className={`px-2 py-0.5 text-xs rounded ${
+                <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+                  <span className="text-sm font-medium text-text-primary break-words flex-1">{task.title}</span>
+                  <span className={`px-2 py-0.5 text-xs rounded whitespace-nowrap flex-shrink-0 ${
                     task.priority === 'high' ? 'bg-accent-red/20 text-accent-red' :
                     task.priority === 'medium' ? 'bg-accent-yellow/20 text-accent-yellow' :
                     'bg-accent-blue/20 text-accent-blue'
@@ -105,7 +105,7 @@ export function RoomDetails({ roomReadiness, tasks }: RoomDetailsProps) {
                     {task.priority}
                   </span>
                 </div>
-                <p className="text-xs text-text-tertiary">{task.reason}</p>
+                <p className="text-xs text-text-tertiary break-words">{task.reason}</p>
               </div>
             ))}
           </div>
