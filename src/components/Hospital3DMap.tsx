@@ -2,6 +2,7 @@ import React, { useRef, useState, Suspense, useMemo, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
+import { supabase } from '@/lib/supabase';
 import type { Database } from '@/lib/supabase';
 import type { Asset } from '@/types/wardops';
 import { useTaskSubscription } from '@/hooks/useTaskSubscription';
@@ -28,6 +29,8 @@ function SimpleRoom({
   isSelected,
   onClick,
   labelRotation = 0,
+  editMode = false,
+  onPositionChange,
 }: {
   position: [number, number, number];
   label: string;
@@ -36,14 +39,17 @@ function SimpleRoom({
   isSelected: boolean;
   onClick: () => void;
   labelRotation?: number;
+  editMode?: boolean;
+  onPositionChange?: (roomId: string, newPosition: [number, number, number]) => void;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const textRef = useRef<any>(null);
   const [hovered, setHovered] = useState(false);
-  const { camera } = useThree();
+  const [isDragging, setIsDragging] = useState(false);
+  const { camera, raycaster, size, gl } = useThree();
 
   useFrame(() => {
-    if (meshRef.current) {
+    if (meshRef.current && !isDragging) {
       const targetY = isSelected ? 0.5 : hovered ? 0.3 : 0;
       meshRef.current.position.y += (targetY - meshRef.current.position.y) * 0.1;
     }
@@ -63,19 +69,55 @@ function SimpleRoom({
     }
   };
 
+  const handlePointerDown = (e: any) => {
+    if (editMode) {
+      e.stopPropagation();
+      setIsDragging(true);
+      (e.target as any).setPointerCapture(e.pointerId);
+    }
+  };
+
+  const handlePointerMove = (e: any) => {
+    if (editMode && isDragging && onPositionChange) {
+      e.stopPropagation();
+
+      // Create a plane at y=0 for dragging
+      const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+      const newPosition = new THREE.Vector3();
+      raycaster.ray.intersectPlane(plane, newPosition);
+
+      if (newPosition) {
+        onPositionChange(roomId, [newPosition.x, 0, newPosition.z]);
+      }
+    }
+  };
+
+  const handlePointerUp = (e: any) => {
+    if (editMode && isDragging) {
+      e.stopPropagation();
+      setIsDragging(false);
+      (e.target as any).releasePointerCapture(e.pointerId);
+    }
+  };
+
   return (
     <group position={position}>
       {/* Room box - colored by status */}
       <mesh
         ref={meshRef}
         onClick={(e) => {
-          e.stopPropagation();
-          onClick();
+          if (!editMode) {
+            e.stopPropagation();
+            onClick();
+          }
         }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
         onPointerOver={(e) => {
           e.stopPropagation();
           setHovered(true);
-          document.body.style.cursor = 'pointer';
+          document.body.style.cursor = editMode ? 'move' : 'pointer';
         }}
         onPointerOut={() => {
           setHovered(false);
@@ -229,10 +271,12 @@ function CentralCommandStation({ position }: { position: [number, number, number
 // Camera controller to focus on selected room
 function CameraController({
   targetPosition,
-  enabled
+  enabled,
+  editMode = false
 }: {
   targetPosition: [number, number, number] | null;
   enabled: boolean;
+  editMode?: boolean;
 }) {
   const { camera } = useThree();
   const controlsRef = useRef<any>();
@@ -264,6 +308,7 @@ function CameraController({
       dampingFactor={0.05}
       minDistance={10}
       maxDistance={50}
+      enabled={!editMode}
     />
   );
 }
@@ -547,7 +592,9 @@ function Hospital2DMap({
   floorSections,
   selectedRoomId,
   onRoomSelect,
-  getRoomStatus
+  getRoomStatus,
+  editMode = false,
+  onPositionChange,
 }: {
   rooms: Room[];
   roomLayouts: Map<string, {
@@ -561,8 +608,12 @@ function Hospital2DMap({
   selectedRoomId: string | null;
   onRoomSelect: (roomId: string) => void;
   getRoomStatus: (roomId: string) => 'ready' | 'needs-attention' | 'occupied';
+  editMode?: boolean;
+  onPositionChange?: (roomId: string, newPosition: [number, number, number]) => void;
 }) {
   const [hoveredRoom, setHoveredRoom] = useState<string | null>(null);
+  const [draggingRoom, setDraggingRoom] = useState<string | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   // Calculate SVG viewBox based on room positions
   const bounds = useMemo(() => {
@@ -589,6 +640,31 @@ function Hospital2DMap({
       case 'needs-attention': return '#ef4444';
       case 'occupied': return '#eab308';
       default: return '#6b7280';
+    }
+  };
+
+  const handleRoomMouseDown = (e: React.MouseEvent, roomId: string) => {
+    if (editMode) {
+      e.stopPropagation();
+      setDraggingRoom(roomId);
+    }
+  };
+
+  const handleSvgMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (editMode && draggingRoom && onPositionChange && svgRef.current) {
+      const svg = svgRef.current;
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const svgP = pt.matrixTransform(svg.getScreenCTM()?.inverse());
+
+      onPositionChange(draggingRoom, [svgP.x, 0, svgP.y]);
+    }
+  };
+
+  const handleSvgMouseUp = () => {
+    if (editMode && draggingRoom) {
+      setDraggingRoom(null);
     }
   };
 
@@ -621,14 +697,19 @@ function Hospital2DMap({
       overflow: 'hidden'
     }}>
       <svg
+        ref={svgRef}
         viewBox={`${bounds.minX} ${bounds.minZ} ${width} ${height}`}
         style={{
           width: '100%',
           height: '100%',
           maxWidth: '100%',
-          maxHeight: '100%'
+          maxHeight: '100%',
+          cursor: editMode && draggingRoom ? 'grabbing' : 'default'
         }}
         preserveAspectRatio="xMidYMid meet"
+        onMouseMove={handleSvgMouseMove}
+        onMouseUp={handleSvgMouseUp}
+        onMouseLeave={handleSvgMouseUp}
       >
         {/* Floor Sections - subtle background areas */}
         {floorSections.map((floor, index) => (
@@ -704,14 +785,16 @@ function Hospital2DMap({
           const color = getStatusColor(status);
           const isSelected = selectedRoomId === layout.id;
           const isHovered = hoveredRoom === layout.id;
-          const scale = isSelected ? 1.15 : isHovered ? 1.08 : 1;
+          const isDragging = draggingRoom === layout.id;
+          const scale = isSelected ? 1.15 : isHovered || isDragging ? 1.08 : 1;
 
           return (
             <g
               key={layout.id}
               transform={`translate(${layout.position[0]}, ${layout.position[2]})`}
-              style={{ cursor: 'pointer' }}
-              onClick={() => onRoomSelect(layout.id)}
+              style={{ cursor: editMode ? 'grab' : 'pointer' }}
+              onClick={() => !editMode && onRoomSelect(layout.id)}
+              onMouseDown={(e) => handleRoomMouseDown(e, layout.id)}
               onMouseEnter={() => setHoveredRoom(layout.id)}
               onMouseLeave={() => setHoveredRoom(null)}
             >
@@ -753,7 +836,36 @@ export function Hospital3DMap({
   onRoomSelect,
   selectedRoomId
 }: Hospital3DMapProps) {
-  const { roomLayouts, hallways, floorSections, walls } = useMemo(() => createHospitalLayout(rooms), [rooms]);
+  const [editMode, setEditMode] = useState(false);
+  const [roomPositions, setRoomPositions] = useState<Map<string, [number, number, number]>>(new Map());
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Load saved positions from database on mount
+  useEffect(() => {
+    const loadedPositions = new Map<string, [number, number, number]>();
+    rooms.forEach(room => {
+      if (room.position_x !== null && room.position_y !== null && room.position_z !== null) {
+        loadedPositions.set(room.id, [room.position_x, room.position_y, room.position_z]);
+      }
+    });
+    if (loadedPositions.size > 0) {
+      setRoomPositions(loadedPositions);
+    }
+  }, [rooms]);
+
+  const { roomLayouts, hallways, floorSections, walls } = useMemo(() => {
+    const layout = createHospitalLayout(rooms);
+    // Override with custom positions if they exist
+    if (roomPositions.size > 0) {
+      roomPositions.forEach((pos, roomId) => {
+        const existing = layout.roomLayouts.get(roomId);
+        if (existing) {
+          layout.roomLayouts.set(roomId, { ...existing, position: pos });
+        }
+      });
+    }
+    return layout;
+  }, [rooms, roomPositions]);
   const [showPopup, setShowPopup] = useState(false);
   const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
   const [is3DView, setIs3DView] = useState(true);
@@ -822,6 +934,83 @@ export function Hospital3DMap({
     setShowPopup(!!selectedRoomId);
   }, [selectedRoomId]);
 
+  const handleRoomPositionChange = (roomId: string, newPosition: [number, number, number]) => {
+    setRoomPositions((prev) => {
+      const updated = new Map(prev);
+      updated.set(roomId, newPosition);
+      return updated;
+    });
+  };
+
+  const handleSaveLayout = async () => {
+    setIsSaving(true);
+    try {
+      // Update each room individually with custom positions
+      const updatePromises = Array.from(roomPositions.entries()).map(([roomId, position]) =>
+        supabase
+          .from('rooms')
+          .update({
+            position_x: position[0],
+            position_y: position[1],
+            position_z: position[2],
+          })
+          .eq('id', roomId)
+      );
+
+      const results = await Promise.all(updatePromises);
+      const errors = results.filter(result => result.error);
+
+      if (errors.length > 0) {
+        console.error('Error saving layout:', errors);
+        alert(`Failed to save ${errors.length} room(s). Please try again.`);
+      } else {
+        alert('Layout saved successfully!');
+      }
+    } catch (err) {
+      console.error('Error saving layout:', err);
+      alert('Failed to save layout. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleResetLayout = async () => {
+    if (!confirm('Are you sure you want to reset the layout to default? This will clear all custom positions.')) {
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Clear positions for all rooms
+      const updatePromises = rooms.map(room =>
+        supabase
+          .from('rooms')
+          .update({
+            position_x: null,
+            position_y: null,
+            position_z: null,
+          })
+          .eq('id', room.id)
+      );
+
+      const results = await Promise.all(updatePromises);
+      const errors = results.filter(result => result.error);
+
+      if (errors.length > 0) {
+        console.error('Error resetting layout:', errors);
+        alert(`Failed to reset ${errors.length} room(s). Please try again.`);
+      } else {
+        setRoomPositions(new Map());
+        alert('Layout reset successfully!');
+      }
+    } catch (err) {
+      console.error('Error resetting layout:', err);
+      alert('Failed to reset layout. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div style={{
       width: '100%',
@@ -835,55 +1024,132 @@ export function Hospital3DMap({
         bottom: '16px',
         left: '16px',
         zIndex: 1000,
-        background: 'rgba(31, 41, 55, 0.95)',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
-        borderRadius: '8px',
-        padding: '4px',
         display: 'flex',
-        gap: '4px'
+        gap: '8px'
       }}>
-        <div
-          onClick={() => setIs3DView(false)}
-          style={{
-            position: 'relative',
-            padding: '8px 16px',
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            color: !is3DView ? 'white' : 'rgba(255, 255, 255, 0.5)',
-            zIndex: 1
-          }}
-        >
-          2D
-        </div>
-        <div
-          onClick={() => setIs3DView(true)}
-          style={{
-            position: 'relative',
-            padding: '8px 16px',
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            color: is3DView ? 'white' : 'rgba(255, 255, 255, 0.5)',
-            zIndex: 1
-          }}
-        >
-          3D
-        </div>
-        {/* Sliding indicator */}
+        {/* 2D/3D Toggle */}
         <div style={{
-          position: 'absolute',
-          top: '4px',
-          left: is3DView ? 'calc(50% + 2px)' : '4px',
-          width: 'calc(50% - 6px)',
-          height: 'calc(100% - 8px)',
-          background: 'rgba(34, 197, 94, 0.8)',
-          borderRadius: '6px',
-          transition: 'left 0.3s ease',
-          zIndex: 0
-        }} />
+          background: 'rgba(31, 41, 55, 0.95)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          borderRadius: '8px',
+          padding: '4px',
+          display: 'flex',
+          gap: '4px'
+        }}>
+          <div
+            onClick={() => setIs3DView(false)}
+            style={{
+              position: 'relative',
+              padding: '8px 16px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              color: !is3DView ? 'white' : 'rgba(255, 255, 255, 0.5)',
+              zIndex: 1
+            }}
+          >
+            2D
+          </div>
+          <div
+            onClick={() => setIs3DView(true)}
+            style={{
+              position: 'relative',
+              padding: '8px 16px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              color: is3DView ? 'white' : 'rgba(255, 255, 255, 0.5)',
+              zIndex: 1
+            }}
+          >
+            3D
+          </div>
+          {/* Sliding indicator */}
+          <div style={{
+            position: 'absolute',
+            top: '4px',
+            left: is3DView ? 'calc(50% + 2px)' : '4px',
+            width: 'calc(50% - 6px)',
+            height: 'calc(100% - 8px)',
+            background: 'rgba(34, 197, 94, 0.8)',
+            borderRadius: '6px',
+            transition: 'left 0.3s ease',
+            zIndex: 0
+          }} />
+        </div>
+
+        {/* Edit Mode Toggle */}
+        <div
+          onClick={() => setEditMode(!editMode)}
+          style={{
+            background: editMode ? 'rgba(59, 130, 246, 0.95)' : 'rgba(31, 41, 55, 0.95)',
+            border: `1px solid ${editMode ? 'rgba(96, 165, 250, 0.4)' : 'rgba(255, 255, 255, 0.2)'}`,
+            borderRadius: '8px',
+            padding: '8px 16px',
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+        >
+          <span>{editMode ? '✓' : '✎'}</span>
+          <span>Edit Mode</span>
+        </div>
+
+        {/* Save Button - only shown in edit mode */}
+        {editMode && (
+          <>
+            <div
+              onClick={handleSaveLayout}
+              style={{
+                background: isSaving ? 'rgba(107, 114, 128, 0.95)' : 'rgba(34, 197, 94, 0.95)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: isSaving ? 'not-allowed' : 'pointer',
+                transition: 'all 0.3s ease',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                opacity: isSaving ? 0.6 : 1
+              }}
+            >
+              <span>{isSaving ? '⏳' : '💾'}</span>
+              <span>{isSaving ? 'Saving...' : 'Save Layout'}</span>
+            </div>
+
+            <div
+              onClick={handleResetLayout}
+              style={{
+                background: 'rgba(239, 68, 68, 0.95)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: isSaving ? 'not-allowed' : 'pointer',
+                transition: 'all 0.3s ease',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                opacity: isSaving ? 0.6 : 1
+              }}
+            >
+              <span>🔄</span>
+              <span>Reset</span>
+            </div>
+          </>
+        )}
       </div>
 
       {is3DView ? (
@@ -895,6 +1161,7 @@ export function Hospital3DMap({
           <CameraController
             targetPosition={selectedRoomLayout?.position || null}
             enabled={!!selectedRoomId}
+            editMode={editMode}
           />
 
           <PopupPositionTracker
@@ -932,6 +1199,8 @@ export function Hospital3DMap({
               isSelected={selectedRoomId === layout.id}
               onClick={() => onRoomSelect(layout.id)}
               labelRotation={layout.labelRotation}
+              editMode={editMode}
+              onPositionChange={handleRoomPositionChange}
             />
           ))}
 
@@ -951,6 +1220,8 @@ export function Hospital3DMap({
           selectedRoomId={selectedRoomId}
           onRoomSelect={onRoomSelect}
           getRoomStatus={getRoomStatus}
+          editMode={editMode}
+          onPositionChange={handleRoomPositionChange}
         />
       )}
 
@@ -1038,7 +1309,29 @@ export function Hospital3DMap({
           fontSize: '12px',
           border: '1px solid rgba(255, 255, 255, 0.1)'
         }}>
-          Drag to rotate • Scroll to zoom • Click rooms
+          {editMode ? 'Drag rooms to move them' : 'Drag to rotate • Scroll to zoom • Click rooms'}
+        </div>
+      )}
+
+      {/* Edit Mode Indicator */}
+      {editMode && (
+        <div style={{
+          position: 'absolute',
+          top: '80px',
+          right: '16px',
+          background: 'rgba(59, 130, 246, 0.95)',
+          borderRadius: '8px',
+          padding: '12px 16px',
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: '600',
+          border: '1px solid rgba(96, 165, 250, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <span>✎</span>
+          <span>Edit Mode Active</span>
         </div>
       )}
 
