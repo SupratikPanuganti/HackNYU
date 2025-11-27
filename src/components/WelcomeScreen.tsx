@@ -69,6 +69,34 @@ const WelcomeScreen = ({ onComplete }: WelcomeScreenProps) => {
         >
           <ArrowRight className="w-8 h-8 text-white group-hover:translate-x-1 transition-transform" />
         </button>
+
+        {/* Links Section */}
+        <div className="mt-8 flex flex-col items-center space-y-2 text-white/80">
+          <a
+            href="https://devpost.com/software/vitalis-m3a0on"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-white transition-colors"
+          >
+            Devpost
+          </a>
+          <a
+            href="https://www.youtube.com/watch?v=MwtSlxG7zeM"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-white transition-colors"
+          >
+            Youtube Demo
+          </a>
+          <a
+            href="https://github.com/SupratikPanuganti/HackNYU"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-white transition-colors"
+          >
+            Github
+          </a>
+        </div>
       </div>
     </div>
   );
